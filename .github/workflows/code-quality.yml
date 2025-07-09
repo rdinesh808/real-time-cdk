@@ -1,0 +1,54 @@
+name: Code Quality Checks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install linters
+        run: |
+          # Python linters
+          pip install black flake8 mypy
+
+          # Node/TypeScript linters
+          npm install -g eslint typescript
+
+          # JSON/YAML linter
+          npm install -g jsonlint yaml-lint
+
+      - name: Run Python linting
+        run: |
+          echo "🔍 Linting Python files..."
+          black --check .
+          flake8 .
+          mypy . || true  # type checking
+
+      - name: Run TypeScript/JS linting
+        run: |
+          echo "🔍 Linting TypeScript/JS files..."
+          eslint . --ext .ts,.js
+
+      - name: Run JSON/YAML validation
+        run: |
+          echo "🔍 Validating JSON and YAML..."
+          find . -name "*.json" -exec jsonlint -q {} \;
+          find . -name "*.yml" -o -name "*.yaml" -exec yaml-lint {} \;
+
