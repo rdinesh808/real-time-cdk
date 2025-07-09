@@ -28,27 +28,26 @@ jobs:
           # Python linters
           pip install black flake8 mypy
 
-          # Node/TypeScript linters
-          npm install -g eslint typescript
+          # TypeScript/JS (ESLint v8 to avoid v9 config issue)
+          npm install -g eslint@8 typescript
 
-          # JSON/YAML linter
+          # JSON/YAML linters
           npm install -g jsonlint yaml-lint
 
-      - name: Run Python linting
+      - name: 🐍 Lint Python files
         run: |
           echo "🔍 Linting Python files..."
-          black --check .
-          flake8 .
-          mypy . || true  # type checking
+          black --check . || exit 1
+          flake8 . || exit 1
+          mypy . || true  # Not strict, doesn't fail build
 
-      - name: Run TypeScript/JS linting
+      - name: 🟨 Lint TypeScript/JS files
         run: |
           echo "🔍 Linting TypeScript/JS files..."
-          eslint . --ext .ts,.js
+          eslint . --ext .ts,.js || exit 1
 
-      - name: Run JSON/YAML validation
+      - name: 🧾 Validate JSON/YAML files
         run: |
-          echo "🔍 Validating JSON and YAML..."
-          find . -name "*.json" -exec jsonlint -q {} \;
-          find . -name "*.yml" -o -name "*.yaml" -exec yaml-lint {} \;
-
+          echo "🔍 Validating JSON and YAML files..."
+          find . -type f -name "*.json" -exec jsonlint -q {} \; || exit 1
+          find . -type f \( -name "*.yml" -o -name "*.yaml" \) -exec yaml-lint {} \; || exit 1
